@@ -6,8 +6,8 @@
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{52B252FC-6369-4D52-8F14-7688E043E768}</ProjectGuid>
     <OutputType>WinExe</OutputType>
-    <RootNamespace>SerialReaderSuperSimple</RootNamespace>
-    <AssemblyName>SerialReaderSuperSimple</AssemblyName>
+    <RootNamespace>Bomberman</RootNamespace>
+    <AssemblyName>Bomberman</AssemblyName>
     <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
@@ -64,7 +64,11 @@
     <Compile Include="Properties\Resources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DependentUpon>Resources.resx</DependentUpon>
+      <DesignTime>True</DesignTime>
     </Compile>
+    <None Include="graphics\.DS_Store" />
+    <None Include="graphics\Bomb\.DS_Store" />
+    <None Include="graphics\Creep\Back\.DS_Store" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
@@ -77,6 +81,76 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
+  </ItemGroup>
+  <ItemGroup />
+  <ItemGroup>
+    <Content Include="graphics\Blocks\BackgroundTile.png" />
+    <Content Include="graphics\Blocks\Bomberman.png" />
+    <Content Include="graphics\Blocks\ExplodableBlock.png" />
+    <Content Include="graphics\Blocks\Portal.png" />
+    <Content Include="graphics\Blocks\SolidBlock.png" />
+    <Content Include="graphics\Bomberman\Back\Bman_B_f00.png" />
+    <Content Include="graphics\Bomberman\Back\Bman_B_f01.png" />
+    <Content Include="graphics\Bomberman\Back\Bman_B_f02.png" />
+    <Content Include="graphics\Bomberman\Back\Bman_B_f03.png" />
+    <Content Include="graphics\Bomberman\Back\Bman_B_f04.png" />
+    <Content Include="graphics\Bomberman\Back\Bman_B_f05.png" />
+    <Content Include="graphics\Bomberman\Back\Bman_B_f06.png" />
+    <Content Include="graphics\Bomberman\Back\Bman_B_f07.png" />
+    <Content Include="graphics\Bomberman\Front\Bman_F_f00.png" />
+    <Content Include="graphics\Bomberman\Front\Bman_F_f01.png" />
+    <Content Include="graphics\Bomberman\Front\Bman_F_f02.png" />
+    <Content Include="graphics\Bomberman\Front\Bman_F_f03.png" />
+    <Content Include="graphics\Bomberman\Front\Bman_F_f04.png" />
+    <Content Include="graphics\Bomberman\Front\Bman_F_f05.png" />
+    <Content Include="graphics\Bomberman\Front\Bman_F_f06.png" />
+    <Content Include="graphics\Bomberman\Front\Bman_F_f07.png" />
+    <Content Include="graphics\Bomberman\Side\Bman_F_f00.png" />
+    <Content Include="graphics\Bomberman\Side\Bman_F_f01.png" />
+    <Content Include="graphics\Bomberman\Side\Bman_F_f02.png" />
+    <Content Include="graphics\Bomberman\Side\Bman_F_f03.png" />
+    <Content Include="graphics\Bomberman\Side\Bman_F_f04.png" />
+    <Content Include="graphics\Bomberman\Side\Bman_F_f05.png" />
+    <Content Include="graphics\Bomberman\Side\Bman_F_f06.png" />
+    <Content Include="graphics\Bomberman\Side\Bman_F_f07.png" />
+    <Content Include="graphics\Bomb\Bomb_f01.png" />
+    <Content Include="graphics\Bomb\Bomb_f02.png" />
+    <Content Include="graphics\Bomb\Bomb_f03.png" />
+    <Content Include="graphics\Creep\Back\Creep_B_f00.png" />
+    <Content Include="graphics\Creep\Back\Creep_B_f01.png" />
+    <Content Include="graphics\Creep\Back\Creep_B_f02.png" />
+    <Content Include="graphics\Creep\Back\Creep_B_f03.png" />
+    <Content Include="graphics\Creep\Back\Creep_B_f04.png" />
+    <Content Include="graphics\Creep\Back\Creep_B_f05.png" />
+    <Content Include="graphics\Creep\Front\Creep_F_f00.png" />
+    <Content Include="graphics\Creep\Front\Creep_F_f01.png" />
+    <Content Include="graphics\Creep\Front\Creep_F_f02.png" />
+    <Content Include="graphics\Creep\Front\Creep_F_f03.png" />
+    <Content Include="graphics\Creep\Front\Creep_F_f04.png" />
+    <Content Include="graphics\Creep\Front\Creep_F_f05.png" />
+    <Content Include="graphics\Creep\Side\Creep_S_f00.png" />
+    <Content Include="graphics\Creep\Side\Creep_S_f01.png" />
+    <Content Include="graphics\Creep\Side\Creep_S_f02.png" />
+    <Content Include="graphics\Creep\Side\Creep_S_f03.png" />
+    <Content Include="graphics\Creep\Side\Creep_S_f04.png" />
+    <Content Include="graphics\Creep\Side\Creep_S_f05.png" />
+    <Content Include="graphics\Creep\Side\Creep_S_f06.png" />
+    <Content Include="graphics\Flame\Flame_f00.png" />
+    <Content Include="graphics\Flame\Flame_f01.png" />
+    <Content Include="graphics\Flame\Flame_F02.png" />
+    <Content Include="graphics\Flame\Flame_F03.png" />
+    <Content Include="graphics\Flame\Flame_F04.png" />
+    <Content Include="graphics\Menu\Control_PlayerOne.png" />
+    <Content Include="graphics\Menu\Control_PlayerTwo.png" />
+    <Content Include="graphics\Menu\One_Player_Hover.png" />
+    <Content Include="graphics\Menu\One_Player_Normal.png" />
+    <Content Include="graphics\Menu\title_background.jpg" />
+    <Content Include="graphics\Menu\title_titletext.png" />
+    <Content Include="graphics\Menu\Two_Players_Hover.png" />
+    <Content Include="graphics\Menu\Two_Players_Normal.png" />
+    <Content Include="graphics\Powerups\BombPowerup.png" />
+    <Content Include="graphics\Powerups\FlamePowerup.png" />
+    <Content Include="graphics\Powerups\SpeedPowerup.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

@@ -12,9 +12,9 @@ using System.Collections.Concurrent;
 
 enum Pos {X,Y,Z,OVER}
 
-namespace SerialReaderSuperSimple
+namespace Bomberman
 {
-    public partial class Form1 : Form
+    public partial class monitorForm : Form
     {
         int baudRate = 128000;
         int dataBits = 8; //bits
@@ -22,12 +22,10 @@ namespace SerialReaderSuperSimple
         // dataQueue
         ConcurrentQueue<int> dataQueue = new ConcurrentQueue<int>();
 
-        // case idx
-        int idx = 0;
         // item limit
         int itemLimit = 8;
 
-        public Form1()
+        public monitorForm()
         {
             InitializeComponent();
 
