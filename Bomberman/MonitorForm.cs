@@ -46,6 +46,11 @@ namespace Bomberman
         // plot 
         int count = 0;
 
+        // bombergame flag
+        Thread bomberThread;
+        bool gameStarted = false;
+        Mutex mut = new Mutex(); // for x,y,z list
+
 
         public monitorForm()
         {
@@ -173,7 +178,7 @@ namespace Bomberman
                     else if (gestureWatch.ElapsedMilliseconds > displayTimeout)
                     {
                         txtGesture.Clear();
-                        Console.WriteLine("over 1s, display clear");
+                        //Console.WriteLine("over 1s, display clear");
                     }
                     if ( readGesture.Length <= 3)
                     {
@@ -207,7 +212,6 @@ namespace Bomberman
                             txtGesture.Text = "Right-hook";
                             break;
                     }
-                    //Console.WriteLine(readGesture);
                     break;
                 case (GESTURE.OVER):
                     txtGesture.Clear();
@@ -215,8 +219,6 @@ namespace Bomberman
                     gestureWatch.Reset();
                     gestureState = GESTURE.IDLE;
                     readGesture = "";
-                    Console.WriteLine("over 1s, clear");
-                    
                     break;
             }
         }
@@ -272,7 +274,8 @@ namespace Bomberman
                 {
                     avgCount = 0;
                 }
-                
+
+                mut.WaitOne(100);
                 for (READ_ACC curr =  READ_ACC.X; curr != READ_ACC.OVER; curr++)
                 {
                     dataQueue.TryDequeue(out data);
@@ -298,6 +301,7 @@ namespace Bomberman
                             break;
                     }
                 }
+                mut.ReleaseMutex();
 
                 // retreive last x,y,z data
                 int xData = x_acc[x_acc.Count - 1];
@@ -334,6 +338,30 @@ namespace Bomberman
                 while (dataQueue.Count > itemLimit)
                     dataQueue.TryDequeue(out int trash);
             }
+        }
+
+        private void btnStart_Click(object sender, EventArgs e)
+        {
+            if (gameStarted)
+            {
+                btnStart.Text = "Start";
+                bomberThread.Abort();
+                gameStarted = false;
+            }
+            else if (serialPort.IsOpen)
+            {
+                btnStart.Text = "Stop";
+                // initialize bomber game thread
+                bomberThread = new Thread(new ThreadStart(ThreadGameStart));
+                bomberThread.Start();
+                gameStarted = true;
+            }
+        }
+
+        private void ThreadGameStart()
+        {
+            BomberGame bomberGame = new BomberGame(ref mut,ref x_acc,ref y_acc,ref z_acc);
+            Application.Run(bomberGame);
         }
     }
 }

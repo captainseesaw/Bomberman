@@ -29,12 +29,12 @@
         private void InitializeComponent()
         {
             this.components = new System.ComponentModel.Container();
-            System.Windows.Forms.DataVisualization.Charting.ChartArea chartArea6 = new System.Windows.Forms.DataVisualization.Charting.ChartArea();
-            System.Windows.Forms.DataVisualization.Charting.Legend legend6 = new System.Windows.Forms.DataVisualization.Charting.Legend();
-            System.Windows.Forms.DataVisualization.Charting.Series series16 = new System.Windows.Forms.DataVisualization.Charting.Series();
-            System.Windows.Forms.DataVisualization.Charting.Series series17 = new System.Windows.Forms.DataVisualization.Charting.Series();
-            System.Windows.Forms.DataVisualization.Charting.Series series18 = new System.Windows.Forms.DataVisualization.Charting.Series();
-            System.Windows.Forms.DataVisualization.Charting.Title title6 = new System.Windows.Forms.DataVisualization.Charting.Title();
+            System.Windows.Forms.DataVisualization.Charting.ChartArea chartArea1 = new System.Windows.Forms.DataVisualization.Charting.ChartArea();
+            System.Windows.Forms.DataVisualization.Charting.Legend legend1 = new System.Windows.Forms.DataVisualization.Charting.Legend();
+            System.Windows.Forms.DataVisualization.Charting.Series series1 = new System.Windows.Forms.DataVisualization.Charting.Series();
+            System.Windows.Forms.DataVisualization.Charting.Series series2 = new System.Windows.Forms.DataVisualization.Charting.Series();
+            System.Windows.Forms.DataVisualization.Charting.Series series3 = new System.Windows.Forms.DataVisualization.Charting.Series();
+            System.Windows.Forms.DataVisualization.Charting.Title title1 = new System.Windows.Forms.DataVisualization.Charting.Title();
             this.cmbPorts = new System.Windows.Forms.ComboBox();
             this.btnConnect = new System.Windows.Forms.Button();
             this.txtX = new System.Windows.Forms.TextBox();
@@ -65,6 +65,7 @@
             this.txtYThreshold = new System.Windows.Forms.TextBox();
             this.txtXThreshold = new System.Windows.Forms.TextBox();
             this.chrAcc = new System.Windows.Forms.DataVisualization.Charting.Chart();
+            this.btnStart = new System.Windows.Forms.Button();
             ((System.ComponentModel.ISupportInitialize)(this.chrAcc)).BeginInit();
             this.SuspendLayout();
             // 
@@ -305,38 +306,49 @@
             // 
             // chrAcc
             // 
-            chartArea6.Name = "ChartArea1";
-            this.chrAcc.ChartAreas.Add(chartArea6);
-            legend6.Name = "Legend";
-            this.chrAcc.Legends.Add(legend6);
+            chartArea1.Name = "ChartArea1";
+            this.chrAcc.ChartAreas.Add(chartArea1);
+            legend1.Name = "Legend";
+            this.chrAcc.Legends.Add(legend1);
             this.chrAcc.Location = new System.Drawing.Point(372, 336);
             this.chrAcc.Name = "chrAcc";
-            series16.ChartArea = "ChartArea1";
-            series16.ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Line;
-            series16.Legend = "Legend";
-            series16.Name = "X";
-            series17.ChartArea = "ChartArea1";
-            series17.ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Line;
-            series17.Legend = "Legend";
-            series17.Name = "Y";
-            series18.ChartArea = "ChartArea1";
-            series18.ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Line;
-            series18.Legend = "Legend";
-            series18.Name = "Z";
-            this.chrAcc.Series.Add(series16);
-            this.chrAcc.Series.Add(series17);
-            this.chrAcc.Series.Add(series18);
+            series1.ChartArea = "ChartArea1";
+            series1.ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Line;
+            series1.Legend = "Legend";
+            series1.Name = "X";
+            series2.ChartArea = "ChartArea1";
+            series2.ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Line;
+            series2.Legend = "Legend";
+            series2.Name = "Y";
+            series3.ChartArea = "ChartArea1";
+            series3.ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Line;
+            series3.Legend = "Legend";
+            series3.Name = "Z";
+            this.chrAcc.Series.Add(series1);
+            this.chrAcc.Series.Add(series2);
+            this.chrAcc.Series.Add(series3);
             this.chrAcc.Size = new System.Drawing.Size(575, 300);
             this.chrAcc.TabIndex = 27;
-            title6.Name = "Acceleartion Plot";
-            title6.Text = "Acceleration Plot";
-            this.chrAcc.Titles.Add(title6);
+            title1.Name = "Acceleartion Plot";
+            title1.Text = "Acceleration Plot";
+            this.chrAcc.Titles.Add(title1);
+            // 
+            // btnStart
+            // 
+            this.btnStart.Location = new System.Drawing.Point(751, 114);
+            this.btnStart.Name = "btnStart";
+            this.btnStart.Size = new System.Drawing.Size(185, 110);
+            this.btnStart.TabIndex = 28;
+            this.btnStart.Text = "Start Game";
+            this.btnStart.UseVisualStyleBackColor = true;
+            this.btnStart.Click += new System.EventHandler(this.btnStart_Click);
             // 
             // monitorForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(9F, 20F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(977, 656);
+            this.Controls.Add(this.btnStart);
             this.Controls.Add(this.chrAcc);
             this.Controls.Add(this.label9);
             this.Controls.Add(this.label10);
@@ -406,6 +418,7 @@
         private System.Windows.Forms.TextBox txtYThreshold;
         private System.Windows.Forms.TextBox txtXThreshold;
         private System.Windows.Forms.DataVisualization.Charting.Chart chrAcc;
+        private System.Windows.Forms.Button btnStart;
     }
 }
 
