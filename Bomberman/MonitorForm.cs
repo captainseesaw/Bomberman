@@ -46,8 +46,8 @@ namespace Bomberman
         // plot 
         int count = 0;
 
-        // bombergame flag
-        Thread bomberThread;
+        // bombergame
+        BomberGame bomberGame; 
         bool gameStarted = false;
         Mutex mut = new Mutex(); // for x,y,z list
 
@@ -61,6 +61,10 @@ namespace Bomberman
             serialPort.DataBits = dataBits;
             serialPort.Parity = Parity.None;
             serialPort.StopBits = StopBits.One;
+
+            // add wpf
+            bomberGame = new BomberGame(ref mut, ref x_acc, ref y_acc, ref z_acc);
+            elementHost.Child = bomberGame;
         }
 
         private void cmbPorts_Click(object sender, EventArgs e)
@@ -110,16 +114,19 @@ namespace Bomberman
         private void SerialPort_DataReceived(object sender, SerialDataReceivedEventArgs e)
         {
             // read all available bytes
-            int numToRead = serialPort.BytesToRead;
-            byte[] arr = new byte[numToRead];
-            serialPort.Read(arr,0, numToRead);
-
-            foreach (int data in arr)
+            if (serialPort.IsOpen)
             {
-                //while (dataQueue.Count > itemLimit)
-                //    dataQueue.TryDequeue(out int trash);
-                dataQueue.Enqueue(data);
-                //Console.WriteLine(data);
+                int numToRead = serialPort.BytesToRead;
+                byte[] arr = new byte[numToRead];
+                serialPort.Read(arr, 0, numToRead);
+
+                foreach (int data in arr)
+                {
+                    //while (dataQueue.Count > itemLimit)
+                    //    dataQueue.TryDequeue(out int trash);
+                    dataQueue.Enqueue(data);
+                    //Console.WriteLine(data);
+                }
             }
         }
 
@@ -345,23 +352,17 @@ namespace Bomberman
             if (gameStarted)
             {
                 btnStart.Text = "Start";
-                bomberThread.Abort();
                 gameStarted = false;
+                bomberGame.StopGame();
             }
             else if (serialPort.IsOpen)
             {
                 btnStart.Text = "Stop";
-                // initialize bomber game thread
-                bomberThread = new Thread(new ThreadStart(ThreadGameStart));
-                bomberThread.Start();
                 gameStarted = true;
+                bomberGame.StartGame();
+                
             }
         }
 
-        private void ThreadGameStart()
-        {
-            BomberGame bomberGame = new BomberGame(ref mut,ref x_acc,ref y_acc,ref z_acc);
-            Application.Run(bomberGame);
-        }
     }
 }

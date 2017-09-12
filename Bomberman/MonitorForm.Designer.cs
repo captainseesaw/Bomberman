@@ -29,12 +29,12 @@
         private void InitializeComponent()
         {
             this.components = new System.ComponentModel.Container();
-            System.Windows.Forms.DataVisualization.Charting.ChartArea chartArea1 = new System.Windows.Forms.DataVisualization.Charting.ChartArea();
-            System.Windows.Forms.DataVisualization.Charting.Legend legend1 = new System.Windows.Forms.DataVisualization.Charting.Legend();
-            System.Windows.Forms.DataVisualization.Charting.Series series1 = new System.Windows.Forms.DataVisualization.Charting.Series();
-            System.Windows.Forms.DataVisualization.Charting.Series series2 = new System.Windows.Forms.DataVisualization.Charting.Series();
-            System.Windows.Forms.DataVisualization.Charting.Series series3 = new System.Windows.Forms.DataVisualization.Charting.Series();
-            System.Windows.Forms.DataVisualization.Charting.Title title1 = new System.Windows.Forms.DataVisualization.Charting.Title();
+            System.Windows.Forms.DataVisualization.Charting.ChartArea chartArea2 = new System.Windows.Forms.DataVisualization.Charting.ChartArea();
+            System.Windows.Forms.DataVisualization.Charting.Legend legend2 = new System.Windows.Forms.DataVisualization.Charting.Legend();
+            System.Windows.Forms.DataVisualization.Charting.Series series4 = new System.Windows.Forms.DataVisualization.Charting.Series();
+            System.Windows.Forms.DataVisualization.Charting.Series series5 = new System.Windows.Forms.DataVisualization.Charting.Series();
+            System.Windows.Forms.DataVisualization.Charting.Series series6 = new System.Windows.Forms.DataVisualization.Charting.Series();
+            System.Windows.Forms.DataVisualization.Charting.Title title2 = new System.Windows.Forms.DataVisualization.Charting.Title();
             this.cmbPorts = new System.Windows.Forms.ComboBox();
             this.btnConnect = new System.Windows.Forms.Button();
             this.txtX = new System.Windows.Forms.TextBox();
@@ -66,6 +66,7 @@
             this.txtXThreshold = new System.Windows.Forms.TextBox();
             this.chrAcc = new System.Windows.Forms.DataVisualization.Charting.Chart();
             this.btnStart = new System.Windows.Forms.Button();
+            this.elementHost = new System.Windows.Forms.Integration.ElementHost();
             ((System.ComponentModel.ISupportInitialize)(this.chrAcc)).BeginInit();
             this.SuspendLayout();
             // 
@@ -306,48 +307,58 @@
             // 
             // chrAcc
             // 
-            chartArea1.Name = "ChartArea1";
-            this.chrAcc.ChartAreas.Add(chartArea1);
-            legend1.Name = "Legend";
-            this.chrAcc.Legends.Add(legend1);
-            this.chrAcc.Location = new System.Drawing.Point(372, 336);
+            chartArea2.Name = "ChartArea1";
+            this.chrAcc.ChartAreas.Add(chartArea2);
+            legend2.Name = "Legend";
+            this.chrAcc.Legends.Add(legend2);
+            this.chrAcc.Location = new System.Drawing.Point(361, 336);
             this.chrAcc.Name = "chrAcc";
-            series1.ChartArea = "ChartArea1";
-            series1.ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Line;
-            series1.Legend = "Legend";
-            series1.Name = "X";
-            series2.ChartArea = "ChartArea1";
-            series2.ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Line;
-            series2.Legend = "Legend";
-            series2.Name = "Y";
-            series3.ChartArea = "ChartArea1";
-            series3.ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Line;
-            series3.Legend = "Legend";
-            series3.Name = "Z";
-            this.chrAcc.Series.Add(series1);
-            this.chrAcc.Series.Add(series2);
-            this.chrAcc.Series.Add(series3);
-            this.chrAcc.Size = new System.Drawing.Size(575, 300);
+            series4.ChartArea = "ChartArea1";
+            series4.ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Line;
+            series4.Legend = "Legend";
+            series4.Name = "X";
+            series5.ChartArea = "ChartArea1";
+            series5.ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Line;
+            series5.Legend = "Legend";
+            series5.Name = "Y";
+            series6.ChartArea = "ChartArea1";
+            series6.ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Line;
+            series6.Legend = "Legend";
+            series6.Name = "Z";
+            this.chrAcc.Series.Add(series4);
+            this.chrAcc.Series.Add(series5);
+            this.chrAcc.Series.Add(series6);
+            this.chrAcc.Size = new System.Drawing.Size(346, 197);
             this.chrAcc.TabIndex = 27;
-            title1.Name = "Acceleartion Plot";
-            title1.Text = "Acceleration Plot";
-            this.chrAcc.Titles.Add(title1);
+            title2.Name = "Acceleartion Plot";
+            title2.Text = "Acceleration Plot";
+            this.chrAcc.Titles.Add(title2);
             // 
             // btnStart
             // 
-            this.btnStart.Location = new System.Drawing.Point(751, 114);
+            this.btnStart.Location = new System.Drawing.Point(950, 12);
             this.btnStart.Name = "btnStart";
-            this.btnStart.Size = new System.Drawing.Size(185, 110);
+            this.btnStart.Size = new System.Drawing.Size(185, 30);
             this.btnStart.TabIndex = 28;
             this.btnStart.Text = "Start Game";
             this.btnStart.UseVisualStyleBackColor = true;
             this.btnStart.Click += new System.EventHandler(this.btnStart_Click);
             // 
+            // elementHost
+            // 
+            this.elementHost.Location = new System.Drawing.Point(753, 61);
+            this.elementHost.Name = "elementHost";
+            this.elementHost.Size = new System.Drawing.Size(576, 576);
+            this.elementHost.TabIndex = 29;
+            this.elementHost.Text = "elementHost";
+            this.elementHost.Child = null;
+            // 
             // monitorForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(9F, 20F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(977, 656);
+            this.ClientSize = new System.Drawing.Size(1338, 657);
+            this.Controls.Add(this.elementHost);
             this.Controls.Add(this.btnStart);
             this.Controls.Add(this.chrAcc);
             this.Controls.Add(this.label9);
@@ -419,6 +430,7 @@
         private System.Windows.Forms.TextBox txtXThreshold;
         private System.Windows.Forms.DataVisualization.Charting.Chart chrAcc;
         private System.Windows.Forms.Button btnStart;
+        private System.Windows.Forms.Integration.ElementHost elementHost;
     }
 }
 
