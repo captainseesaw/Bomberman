@@ -63,7 +63,7 @@ namespace Bomberman
             serialPort.StopBits = StopBits.One;
 
             // add wpf
-            bomberGame = new BomberGame(ref mut, ref x_acc, ref y_acc, ref z_acc);
+            bomberGame = new BomberGame();
             elementHost.Child = bomberGame;
         }
 
@@ -344,6 +344,9 @@ namespace Bomberman
 
                 while (dataQueue.Count > itemLimit)
                     dataQueue.TryDequeue(out int trash);
+
+                if (gameStarted)
+                    bomberGame.UpdatePosition(ref bomberGame.bomber, xData, yData, zData); // update bomberman position
             }
         }
 

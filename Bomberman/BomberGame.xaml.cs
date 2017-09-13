@@ -25,6 +25,8 @@ namespace Bomberman
     /// Interaction logic for BomberGame.xaml
     /// </summary>
     /// 
+    public delegate void StopGameMethod();
+
     public class Character
     {
         public MOVE direction;
@@ -32,9 +34,11 @@ namespace Bomberman
         public int offset; // vertical offset
         static string graphics = "C:/Users/mli/Documents/MECH423/Bomberman/Bomberman/graphics/";
         public BitmapImage down, down_static, up, up_static, left, left_static, right, right_static;
-
-        public Character(string name)
+        string name;
+        public Character(string n)
         {
+            name = n;
+
             if (name == "bomberman")
             {
                 down = new BitmapImage(new Uri(graphics + "Bomberman/down.gif"));
@@ -58,42 +62,125 @@ namespace Bomberman
             Canvas.SetLeft(img, 0);
             ImageBehavior.SetAnimatedSource(img, down_static);
         }
+
+        public void Die(StopGameMethod s)
+        {
+            if (name == "bomberman")
+                s();
+        }
     }
 
     public class Bomb
     {
         public Image img;
+        public Image[] flameArray =  new Image [5];
         static string graphics = "C:/Users/mli/Documents/MECH423/Bomberman/Bomberman/graphics/";
-        public BitmapImage bomb = new BitmapImage(new Uri(graphics + "Bomb/bomb.gif")), flame;
-        bool bomb_init = false;
-        Timer timer;
 
+        // load bitmaps
+        public BitmapImage bomb = new BitmapImage(new Uri(graphics + "Bomb/bomb.gif")), 
+                        flame = new BitmapImage(new Uri(graphics + "Flame/flame.gif"));
 
-        // TODO - bomb doesnt initialize first time?
-        // - bomb timer
-        // - bomb explode
+        // flame pos offset
+        Point[] flameOffset = new Point[5];
+
+        // dispatchertimer for resetting the bomb and flame
+        DispatcherTimer bombTimer; 
+        bool bomb_planted = false;
+        DispatcherTimer flameTimer;
+        bool flame_planted = false;
+
         public Bomb()
         {
-            timer = new Timer();
+            bombTimer = new DispatcherTimer();
+            bombTimer.Tick += new EventHandler(bombTimer_Tick);
+            bombTimer.Interval = new TimeSpan(0, 0, 0, 2);
+
+            flameTimer = new DispatcherTimer();
+            flameTimer.Tick += new EventHandler(flameTimer_Tick);
+            flameTimer.Interval = new TimeSpan(0, 0, 0, 1);
+
             img = new Image
             {
-                Width = bomb.Width,
-                Height = bomb.Height,
-                Visibility = Visibility.Hidden
+                Width = 64,
+                Height = 64,
+                Visibility = Visibility.Hidden,
+                Stretch = Stretch.Fill
             }; 
             ImageBehavior.SetAnimatedSource(img, bomb);
+
+            for (int i =0; i < flameArray.Length; i++)
+            {
+                flameArray[i] = new Image
+                {
+                    Width = 64,
+                    Height = 64,
+                    Visibility = Visibility.Hidden
+                    //Stretch = Stretch.Fill
+                };
+                ImageBehavior.SetAnimatedSource(flameArray[i], flame);
+            }
+
+            // init flame pos offset
+            flameOffset[0] = new Point(0, 0);
+            flameOffset[1] = new Point(64, 0);
+            flameOffset[2] = new Point(-64, 0);
+            flameOffset[3] = new Point(0, 64);
+            flameOffset[4] = new Point(0, -64);
         }
-        public void Initialize(double xData, double yData)
+
+        public void PlantBomb(double xData, double yData)
         {
-            Canvas.SetTop(img, yData);
-            Canvas.SetLeft(img, xData);
+            Canvas.SetTop(img, (int)(yData / 64 + 0.5) * 64);
+            Canvas.SetLeft(img, (int)(xData / 64 + 0.5) * 64);
             img.Visibility = Visibility.Visible;
-            timer.Start();
-            bomb_init = true;
+            bombTimer.Start();
+            bomb_planted = true;
         }
-        public bool GetBombInitialization()
+
+        public bool GetBombPlantState()
         {
-            return bomb_init;
+            return bomb_planted;
+        }
+
+        public bool GetFlamePlantState()
+        {
+            return flame_planted;
+        }
+
+        public void bombTimer_Tick(object sender, EventArgs e)
+        {
+            if (bomb_planted)
+            {
+                img.Visibility = Visibility.Hidden;
+                bombTimer.Stop();
+                Explode();
+            }
+        }
+
+        public void flameTimer_Tick(object sender, EventArgs e)
+        {
+            if (flame_planted)
+            {
+                flame_planted = false;
+                bomb_planted = false;
+                for (int i = 0; i < flameArray.Length; i++)
+                {
+                    flameArray[i].Visibility = Visibility.Hidden;
+                }
+                flameTimer.Stop();
+            }
+        }
+
+        public void Explode()
+        {
+            for (int i =0; i< flameArray.Length; i++)
+            {
+                flameArray[i].Visibility = Visibility.Visible;
+                Canvas.SetTop(flameArray[i], Canvas.GetTop(img)+flameOffset[i].X);
+                Canvas.SetLeft(flameArray[i], Canvas.GetLeft(img) + flameOffset[i].Y);
+            }
+            flame_planted = true;
+            flameTimer.Start();
         }
     }
 
@@ -112,27 +199,16 @@ namespace Bomberman
         BitmapImage solidBlock = new BitmapImage(new Uri(graphics + "Blocks/SolidBlock.png"));
 
         // characters
-        Character bomber;
+        public Character bomber;
 
         // bomb
         Bomb bomb;
         int bomb_thres = 200;
 
-        // accelerometer data
-        System.Threading.Mutex mut;
-        List<int> x_acc, y_acc, z_acc;
-        int xData, yData, zData;
-
-        public BomberGame(ref System.Threading.Mutex m, ref List<int> x, ref List<int> y,
-                          ref List<int> z)
+        public BomberGame()
         {
             InitializeComponent();
             this.Background = new ImageBrush(BACKGROUND);
-
-            mut = m;
-            x_acc = x;
-            y_acc = y;
-            z_acc = z;
 
             // initialize timer
             dispatcherTimer = new DispatcherTimer();
@@ -192,20 +268,18 @@ namespace Bomberman
         {
             bomb = new Bomb();
             canvas.Children.Add(bomb.img);
+            for (int i = 0; i< bomb.flameArray.Length; i++)
+            {
+                canvas.Children.Add(bomb.flameArray[i]);
+            }
         }
 
         private void dispatcherTimer_Tick(object sender, EventArgs e)
         {
-            mut.WaitOne(100);
-            xData = x_acc[x_acc.Count - 1];
-            yData = y_acc[y_acc.Count - 1];
-            zData = z_acc[z_acc.Count - 1];
-            mut.ReleaseMutex();
+            //UpdatePosition(ref bomber, xData, yData);
 
-            UpdatePosition(ref bomber, xData, yData, zData);
-
-            if (zData > bomb_thres && !bomb.GetBombInitialization())
-                bomb.Initialize(Canvas.GetLeft(bomber.img),Canvas.GetTop(bomber.img)+bomber.offset);
+            //if (zData > bomb_thres)// && !bomb.GetBombInitialization())
+            //    bomb.Initialize(Canvas.GetLeft(bomber.img),Canvas.GetTop(bomber.img)+bomber.offset);
 
         }
 
@@ -248,28 +322,28 @@ namespace Bomberman
             {
                 c.direction = MOVE.UP;
                 Canvas.SetTop(c.img, Canvas.GetTop(c.img) - 2); // attempt move
-                if (CheckBlockCollision(ref c) || CheckWallCollision(ref c)) // if collision, revert move
+                if (CheckBlockCollision(ref c) || CheckWallCollision(ref c) ) // if collision, revert move
                     Canvas.SetTop(c.img, Canvas.GetTop(c.img) + 2);
             }
             else if (xData < ORIENTATION_LOW)
             {
                 c.direction = MOVE.DOWN;
                 Canvas.SetTop(c.img, Canvas.GetTop(c.img) + 2);
-                if (CheckBlockCollision(ref c) || CheckWallCollision(ref c))
+                if (CheckBlockCollision(ref c) || CheckWallCollision(ref c) )
                     Canvas.SetTop(c.img, Canvas.GetTop(c.img) - 2);
             }
             else if (yData > ORIENTATION_UP)
             {
                 c.direction = MOVE.LEFT;
                 Canvas.SetLeft(c.img, Canvas.GetLeft(c.img) - 2);
-                if (CheckBlockCollision(ref c) || CheckWallCollision(ref c))
+                if (CheckBlockCollision(ref c) || CheckWallCollision(ref c) )
                     Canvas.SetLeft(c.img, Canvas.GetLeft(c.img) + 2);
             }
             else if (yData < ORIENTATION_LOW)
             {
                 c.direction = MOVE.RIGHT;
                 Canvas.SetLeft(c.img, Canvas.GetLeft(c.img) + 2);
-                if (CheckBlockCollision(ref c) || CheckWallCollision(ref c))
+                if (CheckBlockCollision(ref c) || CheckWallCollision(ref c) )
                     Canvas.SetLeft(c.img, Canvas.GetLeft(c.img) - 2);
             }
             else
@@ -284,8 +358,17 @@ namespace Bomberman
                     c.direction = MOVE.UP_STAT;
             }
 
+            // if touches flame, character dies
+            if (CheckFlameCollision(ref c))
+                c.Die(StopGame);
+
+            // only change graphics when the previous state is not the same
             if (pre_state != c.direction)
                 UpdateGraphics(ref c);
+
+            // initialize bomb
+            if (zData > bomb_thres && !bomb.GetBombPlantState())
+                bomb.PlantBomb(Canvas.GetLeft(bomber.img), Canvas.GetTop(bomber.img) + bomber.offset);
         }
 
         public bool CheckCollision(ref Image a, int offset_a, Image b, int offset_b, int tolerance)
@@ -312,8 +395,27 @@ namespace Bomberman
         {
             double top = Canvas.GetTop(c.img) + c.offset, left = Canvas.GetLeft(c.img),
                    bot = top + c.img.Height - c.offset, right = left + c.img.Width;
-            if (top < 0 || bot > this.Height || right > this.Width || left < 0)
+            if (top < 0 || bot > 384 || right > 384 || left < 0)
                 return true;
+            return false;
+        }
+
+        public bool CheckBombCollision(ref Character c)
+        {
+            if (bomb.GetBombPlantState() && CheckCollision(ref c.img,c.offset,bomb.img,0,10))
+                return true;
+            return false;
+        }
+
+        public bool CheckFlameCollision(ref Character c)
+        {
+            if (bomb.GetFlamePlantState()) {
+                for (int i = 0; i < bomb.flameArray.Length; i++)
+                {
+                    if (CheckCollision(ref c.img, c.offset, bomb.flameArray[i], 0, 10))
+                        return true;
+                }
+            }
             return false;
         }
     }
