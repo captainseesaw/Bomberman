@@ -31,11 +31,14 @@ namespace Bomberman
     {
         public MOVE direction;
         public Image img;
+        public Image result;
         public int offset; // vertical offset
         static string graphics = "C:/Users/mli/Documents/MECH423/Bomberman/Bomberman/graphics/";
         public BitmapImage down, down_static, up, up_static, left, left_static, right, right_static;
+        public BitmapImage WIN = new BitmapImage(new Uri(graphics + "win.jpg"));
+        public BitmapImage LOSE = new BitmapImage(new Uri(graphics + "lose.jpg"));
         string name;
-        public Character(string n)
+        public Character(string n, Point p)
         {
             name = n;
 
@@ -49,7 +52,20 @@ namespace Bomberman
                 left_static = new BitmapImage(new Uri(graphics + "Bomberman/Left/Bman_F_f00.png"));
                 right = new BitmapImage(new Uri(graphics + "Bomberman/right.gif"));
                 right_static = new BitmapImage(new Uri(graphics + "Bomberman/Right/Bman_F_f00.png"));
+
                 offset = 64;
+            }
+            else if (name == "creep")
+            {
+                down = new BitmapImage(new Uri(graphics + "Creep/down.gif"));
+                down_static = new BitmapImage(new Uri(graphics + "Creep/Front/Creep_F_f00.png"));
+                up = new BitmapImage(new Uri(graphics + "Creep/up.gif"));
+                up_static = new BitmapImage(new Uri(graphics + "Creep/Back/Creep_B_f00.png"));
+                left = new BitmapImage(new Uri(graphics + "Creep/left.gif"));
+                left_static = new BitmapImage(new Uri(graphics + "Creep/Left/Creep_S_f00.png"));
+                right = new BitmapImage(new Uri(graphics + "Creep/right.gif"));
+                right_static = new BitmapImage(new Uri(graphics + "Creep/Right/Creep_S_f00.png"));
+                offset = 0;
             }
 
             direction = MOVE.DOWN_STAT;
@@ -58,15 +74,34 @@ namespace Bomberman
                 Width = down.Width,
                 Height = down.Height,
             };
-            Canvas.SetTop(img, -offset);
-            Canvas.SetLeft(img, 0);
+            Canvas.SetTop(img, -offset+p.X);
+            Canvas.SetLeft(img, p.Y);
             ImageBehavior.SetAnimatedSource(img, down_static);
+
+            result = new Image
+            {
+                Width = 64*6,
+                Height = 64*6,
+                Stretch = Stretch.Fill,
+                Visibility = Visibility.Hidden
+            };
         }
 
         public void Die(StopGameMethod s)
         {
             if (name == "bomberman")
+            {
+                result.Source = LOSE;
+                result.Visibility = Visibility.Visible;
                 s();
+            }
+            else if (name == "creep")
+            {
+                img.Visibility = Visibility.Hidden;
+                result.Source = WIN;
+                result.Visibility = Visibility.Visible;
+                s();
+            }
         }
     }
 
@@ -190,6 +225,7 @@ namespace Bomberman
         BitmapImage BACKGROUND = new BitmapImage(new Uri(graphics + "Menu/title_background.jpg"));
         static int ORIENTATION_LOW = 105;
         static int ORIENTATION_UP = 155;
+        static int ORIENTATION_STAT = 120;
 
         // timer
         DispatcherTimer dispatcherTimer;
@@ -200,10 +236,15 @@ namespace Bomberman
 
         // characters
         public Character bomber;
+        public Character creep;
+        Random rnd = new Random(); // random direction generator
+        int moveX  = ORIENTATION_LOW, moveY = ORIENTATION_STAT;
 
         // bomb
         Bomb bomb;
         int bomb_thres = 200;
+
+        bool gameStarted = false;
 
         public BomberGame()
         {
@@ -213,13 +254,15 @@ namespace Bomberman
             // initialize timer
             dispatcherTimer = new DispatcherTimer();
             dispatcherTimer.Tick += new EventHandler(dispatcherTimer_Tick);
-            dispatcherTimer.Interval = new TimeSpan(0, 0, 0, 0, 10);
+            dispatcherTimer.Interval = new TimeSpan(0, 0, 0, 0, 25);
             
         }
 
         public void StartGame()
         {
+            canvas.Children.Clear();
             dispatcherTimer.Start();
+            gameStarted = true;
             this.Background = new ImageBrush {
                 ImageSource = new BitmapImage(new Uri(graphics + "Blocks/BackgroundTile.png")),
                 TileMode = TileMode.Tile,
@@ -233,8 +276,9 @@ namespace Bomberman
 
         public void StopGame()
         {
-            this.Background = new ImageBrush(BACKGROUND);
-            canvas.Children.Clear();
+            dispatcherTimer.Stop();
+            gameStarted = false;
+            //canvas.Children.Clear();
         }
 
         private void SpawnSolidBlock()
@@ -260,8 +304,13 @@ namespace Bomberman
 
         private void SpawnCharacter()
         {
-            bomber = new Character("bomberman"); 
+            bomber = new Character("bomberman",new Point(0,0)); 
             canvas.Children.Add(bomber.img);
+            canvas.Children.Add(bomber.result);
+
+            creep = new Character("creep",new Point(300,0));
+            canvas.Children.Add(creep.img);
+            canvas.Children.Add(creep.result);
         }
 
         private void SpawnBomb()
@@ -276,7 +325,27 @@ namespace Bomberman
 
         private void dispatcherTimer_Tick(object sender, EventArgs e)
         {
-            //UpdatePosition(ref bomber, xData, yData);
+            if (UpdatePosition(ref creep, moveX, moveY, 0))
+            {
+                int num = rnd.Next(0, 4);
+                switch (num)
+                {
+                    case (0):
+                        moveX = ORIENTATION_LOW; moveY = ORIENTATION_STAT;
+                        break;
+                    case (1):
+                        moveX = ORIENTATION_UP; moveY = ORIENTATION_STAT;
+                        break;
+                    case (2):
+                        moveX = ORIENTATION_STAT; moveY = ORIENTATION_LOW;
+                        break;
+                    case (3):
+                        moveX = ORIENTATION_STAT; moveY = ORIENTATION_UP;
+                        break;
+                }
+            }
+            //Console.WriteLine(num);
+            
 
             //if (zData > bomb_thres)// && !bomb.GetBombInitialization())
             //    bomb.Initialize(Canvas.GetLeft(bomber.img),Canvas.GetTop(bomber.img)+bomber.offset);
@@ -314,37 +383,50 @@ namespace Bomberman
             }
         }
 
-        public void UpdatePosition(ref Character c, int xData, int yData, int zData)
+        public bool UpdatePosition(ref Character c, int xData, int yData, int zData)
         {
             MOVE pre_state = c.direction;
+            bool collide = false;
             // update orientation
-            if (xData > ORIENTATION_UP)
+            if (xData >= ORIENTATION_UP)
             {
                 c.direction = MOVE.UP;
                 Canvas.SetTop(c.img, Canvas.GetTop(c.img) - 2); // attempt move
-                if (CheckBlockCollision(ref c) || CheckWallCollision(ref c) ) // if collision, revert move
+                if (CheckBlockCollision(ref c) || CheckWallCollision(ref c))// if collision, revert move
+                { 
                     Canvas.SetTop(c.img, Canvas.GetTop(c.img) + 2);
+                    collide = true;
+                }
             }
-            else if (xData < ORIENTATION_LOW)
+            else if (xData <= ORIENTATION_LOW)
             {
                 c.direction = MOVE.DOWN;
                 Canvas.SetTop(c.img, Canvas.GetTop(c.img) + 2);
-                if (CheckBlockCollision(ref c) || CheckWallCollision(ref c) )
+                if (CheckBlockCollision(ref c) || CheckWallCollision(ref c))
+                {
                     Canvas.SetTop(c.img, Canvas.GetTop(c.img) - 2);
+                    collide = true;
+                }
             }
-            else if (yData > ORIENTATION_UP)
+            else if (yData >= ORIENTATION_UP)
             {
                 c.direction = MOVE.LEFT;
                 Canvas.SetLeft(c.img, Canvas.GetLeft(c.img) - 2);
-                if (CheckBlockCollision(ref c) || CheckWallCollision(ref c) )
+                if (CheckBlockCollision(ref c) || CheckWallCollision(ref c))
+                {
                     Canvas.SetLeft(c.img, Canvas.GetLeft(c.img) + 2);
+                    collide = true;
+                }
             }
-            else if (yData < ORIENTATION_LOW)
+            else if (yData <= ORIENTATION_LOW)
             {
                 c.direction = MOVE.RIGHT;
                 Canvas.SetLeft(c.img, Canvas.GetLeft(c.img) + 2);
-                if (CheckBlockCollision(ref c) || CheckWallCollision(ref c) )
+                if (CheckBlockCollision(ref c) || CheckWallCollision(ref c))
+                {
                     Canvas.SetLeft(c.img, Canvas.GetLeft(c.img) - 2);
+                    collide = true;
+                }
             }
             else
             {
@@ -369,6 +451,8 @@ namespace Bomberman
             // initialize bomb
             if (zData > bomb_thres && !bomb.GetBombPlantState())
                 bomb.PlantBomb(Canvas.GetLeft(bomber.img), Canvas.GetTop(bomber.img) + bomber.offset);
+
+            return collide;
         }
 
         public bool CheckCollision(ref Image a, int offset_a, Image b, int offset_b, int tolerance)
@@ -417,6 +501,11 @@ namespace Bomberman
                 }
             }
             return false;
+        }
+
+        public bool GetGameStatus()
+        {
+            return gameStarted;
         }
     }
 }

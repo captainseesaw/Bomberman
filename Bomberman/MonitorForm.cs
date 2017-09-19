@@ -26,15 +26,25 @@ namespace Bomberman
         // serial port
         int baudRate = 128000;
         int dataBits = 8; //bits
+        int bytesToRead = 0;
 
         // dataQueue
         ConcurrentQueue<int> dataQueue = new ConcurrentQueue<int>();
         int itemLimit = 8; // item limit
 
+        // gravity
+        int positive_x = 166,
+            negative_x = 93,
+            positive_y = 165,
+            negative_y = 92,
+            positive_z = 162,
+            negative_z = 87;
+
         // list for x,y,z values
         List<int> x_acc = new List<int>();
         List<int> y_acc = new List<int>();
         List<int> z_acc = new List<int>();
+        List<double> grav = new List<double>();
 
         // gesture reading
         Stopwatch gestureWatch = new Stopwatch();
@@ -47,9 +57,7 @@ namespace Bomberman
         int count = 0;
 
         // bombergame
-        BomberGame bomberGame; 
-        bool gameStarted = false;
-        Mutex mut = new Mutex(); // for x,y,z list
+        BomberGame bomberGame;
 
 
         public monitorForm()
@@ -92,7 +100,15 @@ namespace Bomberman
             }
             else
             {
-                serialPort.Open();
+                try
+                {
+                    serialPort.Open();
+                }
+                catch (System.IO.IOException)
+                {
+                    MessageBox.Show("Error, com port not found");
+                    return;
+                }
                 btnConnect.Text = "Disconnect";
                 Console.WriteLine("connected");
                 cmbPorts.Enabled = false;
@@ -117,6 +133,7 @@ namespace Bomberman
             if (serialPort.IsOpen)
             {
                 int numToRead = serialPort.BytesToRead;
+                bytesToRead = numToRead;
                 byte[] arr = new byte[numToRead];
                 serialPort.Read(arr, 0, numToRead);
 
@@ -149,25 +166,100 @@ namespace Bomberman
                 txtOrientation.Text = String.Empty;
         } 
 
+        private void Update_btnConnect()
+        {
+            bool connected = serialPort.IsOpen;
+            if (connected)
+            {
+                btnConnect.Text = "Disconnect";
+                cmbPorts.Enabled = false;
+            }
+            else
+            {
+                btnConnect.Text = "Connect";
+                cmbPorts.Enabled = true;
+            }
+        }
+
         private void Calculate_average(int avgCount)
         {
             // calculate average
             if (avgCount != 0)
             {
-                txtXAvg.Text = (x_acc.Sum() / x_acc.Count).ToString();
-                txtYAvg.Text = (y_acc.Sum() / y_acc.Count).ToString();
-                txtZAvg.Text = (z_acc.Sum() / z_acc.Count).ToString();
+                double avg_x = x_acc.Average();
+                double avg_y = y_acc.Average();
+                double avg_z = z_acc.Average();
+
+                double grav_x = (avg_x - negative_x) * 2 * 9.81 / (positive_x - negative_x) - 9.81;
+                double grav_y = (avg_y - negative_y) * 2 * 9.81 / (positive_y - negative_y) - 9.81;
+                double grav_z = (avg_z - negative_z) * 2 * 9.81 / (positive_z - negative_z) - 9.81;
+
+                txtXAvg.Text = grav_x.ToString();
+                txtYAvg.Text = grav_y.ToString();
+                txtZAvg.Text = grav_z.ToString();
+                //txtGAvg.Text = Math.Sqrt(Math.Pow(grav_x,2)+ Math.Pow(grav_y, 2)+ Math.Pow(grav_z, 2)).ToString();
+
+    //[A, B] --> [a, b]
+
+    //use this formula
+    //(val - A) * (b - a) / (B - A) + a
+
             }
             else
             {
                 txtXAvg.Text = String.Empty;
                 txtYAvg.Text = String.Empty;
                 txtZAvg.Text = String.Empty;
+                //txtGAvg.Clear();
+            }
+        }
+
+        private double Calculate_grav(int xData, int yData, int zData)
+        {
+            double grav_x = (xData - negative_x) * 2 * 9.81 / (positive_x - negative_x) - 9.81;
+            double grav_y = (yData - negative_y) * 2 * 9.81 / (positive_y - negative_y) - 9.81;
+            double grav_z = (zData - negative_z) * 2 * 9.81 / (positive_z - negative_z) - 9.81;
+
+            return Math.Sqrt(Math.Pow(grav_x, 2) + Math.Pow(grav_y, 2) + Math.Pow(grav_z, 2));
+        }
+
+        private void Calculate_std(int avgCount)
+        {
+            if (avgCount != 0)
+            {
+                //Compute the Average      
+                double avg_x = x_acc.Average();
+                double avg_y = y_acc.Average();
+                double avg_z = z_acc.Average();
+                double sum_x = 0, sum_y = 0, sum_z = 0;
+
+                //Perform the Sum of (value-avg)_2_2
+                for (int i =0; i < x_acc.Count; i++)
+                {
+                    sum_x += Math.Pow(x_acc[i] - avg_x, 2);
+                    sum_y += Math.Pow(y_acc[i] - avg_y, 2);
+                    sum_z += Math.Pow(z_acc[i] - avg_z, 2);
+                }
+
+                //Put it all together      
+                double std_x = Math.Sqrt(sum_x) / avgCount;
+                double std_y = Math.Sqrt(sum_y) / avgCount ;
+                double std_z = Math.Sqrt(sum_z) / avgCount ;
+
+                txtXStddev.Text = std_x.ToString();
+                txtYStddev.Text = std_y.ToString();
+                txtZStddev.Text = std_z.ToString();
+            }
+            else
+            {
+                txtXStddev.Clear();
+                txtYStddev.Clear();
+                txtZStddev.Clear();
             }
         }
 
         private void Update_gesture(int xData, int yData, int zData,
-            int xThreshold, int yThreshold, int zThreshold)
+            int xThreshold, int yThreshold, int zThreshold, int yThresholdNeg, int zThresholdNeg)
         {
             switch (gestureState)
             {
@@ -189,34 +281,47 @@ namespace Bomberman
                     }
                     if ( readGesture.Length <= 3)
                     {
-                        if (xData > xThreshold && !readGesture.EndsWith("X"))
+                        if (xData > xThreshold && !readGesture.Contains("X") && !readGesture.Contains("Z") && !readGesture.Contains("z"))
                         {
                             readGesture += "X";
                             txtGesture.Text = readGesture;
                         }
 
-                        if (yData > yThreshold && !readGesture.EndsWith("Y") && readGesture.Contains('X'))
+                        if (zData < zThresholdNeg && !readGesture.Contains("z") && !readGesture.Contains("Z") && !readGesture.Contains("X") && !readGesture.Contains("Y"))
+                        {
+                            readGesture += "z";
+                            txtGesture.Text = readGesture;
+                        }
+
+                        if (zData > zThreshold && !readGesture.EndsWith("Z") && !readGesture.EndsWith("z") && !readGesture.EndsWith("X") && !readGesture.EndsWith("Y") && !readGesture.EndsWith("y"))
+                        {
+                            readGesture += "Z";
+                            txtGesture.Text = readGesture;
+                        }
+
+                        if (yData > yThreshold && !readGesture.Contains("Y") && (readGesture.Contains('X') || readGesture.Contains('Z')))
                         {
                             readGesture += "Y";
                             txtGesture.Text = readGesture;
                         }
 
-                        if (zData > zThreshold && !readGesture.EndsWith("Z") && !readGesture.Contains("ZX"))
+                        if (yData < yThresholdNeg && !readGesture.EndsWith("y") && readGesture.Contains("ZY"))
                         {
-                            readGesture += "Z";
+                            readGesture += "y";
                             txtGesture.Text = readGesture;
                         }
+                        
                     }
                     switch (readGesture)
                     {
-                        case "X":
-                            txtGesture.Text = "Simple punch";
+                        case "z":
+                            txtGesture.Text = "Free fall";
                             break;
-                        case "ZX":
-                            txtGesture.Text = "High punch";
+                        case "XY":
+                            txtGesture.Text = "Frisbee throw";
                             break;
-                        case "XYZ":
-                            txtGesture.Text = "Right-hook";
+                        case "ZYy":
+                            txtGesture.Text = "Wave";
                             break;
                     }
                     break;
@@ -257,10 +362,13 @@ namespace Bomberman
         {
             int data;
 
+            txtBytesToRead.Text = bytesToRead.ToString();
+            txtQueueCount.Text = dataQueue.Count.ToString();
+
+            Update_btnConnect();
+
             // check if queue is empty
-            if (dataQueue.Count == 0)
-                return;
-            else
+            if (dataQueue.Count > 0 && serialPort.IsOpen)
             {
                 dataQueue.TryDequeue(out data);
                 // read a packet of data
@@ -275,97 +383,117 @@ namespace Bomberman
                 count++; // for x-axis of plot
                 try
                 {
-                    avgCount = int.Parse(txtN.Text);
+                    avgCount = int.Parse(txtAvgN.Text);
                 }
                 catch (System.FormatException)
                 {
                     avgCount = 0;
                 }
 
-                mut.WaitOne(100);
-                for (READ_ACC curr =  READ_ACC.X; curr != READ_ACC.OVER; curr++)
+                int stddevCount;
+                try
+                {
+                    stddevCount = int.Parse(txtStddevN.Text);
+                }
+                catch (System.FormatException)
+                {
+                    stddevCount = 0;
+                }
+
+
+                for (READ_ACC curr = READ_ACC.X; curr != READ_ACC.OVER; curr++)
                 {
                     dataQueue.TryDequeue(out data);
                     switch (curr)
                     {
                         case READ_ACC.X:
                             txtX.Text = data.ToString();
-                            while (x_acc.Count > avgCount)
+                            while (x_acc.Count > stddevCount)
                                 x_acc.RemoveAt(0);
                             x_acc.Add(data);
                             break;
                         case READ_ACC.Y:
                             txtY.Text = data.ToString();
-                            while (y_acc.Count > avgCount)
+                            while (y_acc.Count > stddevCount)
                                 y_acc.RemoveAt(0);
                             y_acc.Add(data);
                             break;
                         case READ_ACC.Z:
                             txtZ.Text = data.ToString();
-                            while (z_acc.Count > avgCount)
+                            while (z_acc.Count > stddevCount)
                                 z_acc.RemoveAt(0);
                             z_acc.Add(data);
                             break;
                     }
                 }
-                mut.ReleaseMutex();
+
 
                 // retreive last x,y,z data
                 int xData = x_acc[x_acc.Count - 1];
                 int yData = y_acc[y_acc.Count - 1];
                 int zData = z_acc[z_acc.Count - 1];
 
-                // read threshold values
-                int xThreshold, yThreshold, zThreshold;
-                try
+                if (!bomberGame.GetGameStatus())
                 {
-                    xThreshold = int.Parse(txtXThreshold.Text);
-                    yThreshold = int.Parse(txtYThreshold.Text);
-                    zThreshold = int.Parse(txtZThreshold.Text);
-                }
-                catch (System.FormatException)
-                {
-                    xThreshold = 220;
-                    yThreshold = 220;
-                    zThreshold = 220;
-                }
-                
+                    if (grav.Count > avgCount)
+                        grav.RemoveAt(0);
+                    grav.Add(Calculate_grav(xData, yData, zData));
+                    txtGAvg.Text = grav.Average().ToString();
 
-                // start gesture reading
-                if ((xData > xThreshold || zData > zThreshold) && gestureState == GESTURE.IDLE)
-                {
-                    gestureState = GESTURE.START;
-                }
+                    // read threshold values
+                    int xThreshold, yThreshold, zThreshold, yThresholdNeg, zThresholdNeg;
+                    try
+                    {
+                        xThreshold = int.Parse(txtXThreshold.Text);
+                        yThreshold = int.Parse(txtYThreshold.Text);
+                        zThreshold = int.Parse(txtZThreshold.Text);
+                        yThresholdNeg = int.Parse(txtYNeg.Text);
+                        zThresholdNeg = int.Parse(txtZNeg.Text);
+                    }
+                    catch (System.FormatException)
+                    {
+                        xThreshold = 220;
+                        yThreshold = 220;
+                        zThreshold = 220;
+                        yThresholdNeg = 100;
+                        zThresholdNeg = 100;
+                    }
 
-                Update_orientation(xData, yData, zData);
-                Calculate_average(avgCount);
-                Update_gesture(xData, yData, zData, xThreshold, yThreshold, zThreshold);
-                Update_plot(xData, yData, zData, count);
+                    // start gesture reading
+                    if ((xData > xThreshold || zData > zThreshold || zData < zThresholdNeg) && gestureState == GESTURE.IDLE)
+                    {
+                        gestureState = GESTURE.START;
+                    }
+
+                    Update_orientation(xData, yData, zData);
+                    Calculate_average(avgCount);
+                    Calculate_std(stddevCount);
+                    Update_gesture(xData, yData, zData, xThreshold, yThreshold, zThreshold, yThresholdNeg, zThresholdNeg);
+                    Update_plot(xData, yData, zData, count);
+                }
 
                 while (dataQueue.Count > itemLimit)
                     dataQueue.TryDequeue(out int trash);
 
-                if (gameStarted)
+                if (bomberGame.GetGameStatus())
                     bomberGame.UpdatePosition(ref bomberGame.bomber, xData, yData, zData); // update bomberman position
+                else if (btnStart.Text != "Start")
+                    btnStart.Text = "Start";
             }
         }
 
         private void btnStart_Click(object sender, EventArgs e)
         {
-            if (gameStarted)
+            if (bomberGame.GetGameStatus())
             {
                 btnStart.Text = "Start";
-                gameStarted = false;
                 bomberGame.StopGame();
             }
             else if (serialPort.IsOpen)
             {
                 btnStart.Text = "Stop";
-                gameStarted = true;
                 bomberGame.StartGame();
-                
             }
         }
-
     }
 }
